@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastembed import TextEmbedding
 from groq import Groq
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer
 
 import auth
 from auth import get_current_user
@@ -23,7 +23,7 @@ UPLOADS_DIR = Path("uploads")
 VECTORS_ROOT = Path("data") / "vectors"
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # per-file cap; document count is unlimited
 
-EMBED_MODEL = "all-MiniLM-L6-v2"  # must match ingest.py
+EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # must match ingest.py
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")  # override via .env
 TOP_K = 4
 MAX_INSTRUCTION_CHARS = 2000
@@ -39,7 +39,7 @@ DISCLAIMER = (
 
 
 class State:
-    model = None  # SentenceTransformer
+    model = None  # TextEmbedding
     groq = None
     vectors = {}  # doc_id -> (faiss index, chunks) cache
 
@@ -50,7 +50,8 @@ state = State()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Loading embedding model ...")
-    state.model = SentenceTransformer(EMBED_MODEL)
+    # threads=1 keeps ONNX memory low on 512MB hosts like Render free tier.
+    state.model = TextEmbedding(EMBED_MODEL, threads=1)
 
     from db import ensure_indexes, ping
     ping()
@@ -258,7 +259,10 @@ def load_doc_vectors(doc: dict):
 
 def retrieve(question: str, docs: list[dict], k: int = TOP_K) -> list[dict]:
     import json
-    q_vec = state.model.encode([question], normalize_embeddings=True)
+    import numpy as np
+    q_vec = np.asarray(list(state.model.embed([question])), dtype="float32")
+    # Queries must be unit length too, to match the normalized stored vectors.
+    q_vec /= np.linalg.norm(q_vec)
 
     hits = []
     for doc in docs:

@@ -3,7 +3,7 @@ fastapi                  # web framework (auth, upload, /chat API)
 uvicorn[standard]        # ASGI server that runs the FastAPI app
 python-multipart         # lets FastAPI accept file uploads
 pydantic                 # request/response validation (comes with FastAPI)
-sentence-transformers    # local embedding model (all-MiniLM-L6-v2), no API cost
+fastembed                # ONNX embedding model (all-MiniLM-L6-v2), low memory
 faiss-cpu                # vector database for similarity search
 pdfplumber               # PDF text extraction
 groq                     # official Groq Python client (LLM generation)

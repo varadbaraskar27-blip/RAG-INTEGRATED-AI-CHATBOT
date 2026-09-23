@@ -6,11 +6,11 @@ from pathlib import Path
 import faiss
 import numpy as np
 import pdfplumber
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
 CHUNK_WORDS = 500
 OVERLAP_WORDS = 50
-EMBED_MODEL = "all-MiniLM-L6-v2"
+EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".md"}
 
@@ -51,7 +51,7 @@ def split_into_chunks(text: str,
 
 def ingest_file(path: str | Path,
                 out_dir: str | Path,
-                model: SentenceTransformer | None = None,
+                model: TextEmbedding | None = None,
                 quiet: bool = False,
                 display_name: str | None = None) -> dict:
     doc_file = Path(path)
@@ -88,15 +88,15 @@ def ingest_file(path: str | Path,
     # Reuse the server's loaded model when provided; CLI loads its own.
     if model is None:
         log(f"[3/4] Loading embedding model '{EMBED_MODEL}' ...")
-        model = SentenceTransformer(EMBED_MODEL)
+        model = TextEmbedding(EMBED_MODEL, threads=1)
 
     log("[3/4] Computing embeddings ...")
-    embeddings = model.encode(
+    embeddings = model.embed(
         [c["text"] for c in all_chunks],
-        show_progress_bar=not quiet,
-        normalize_embeddings=True,  # unit length -> FAISS inner product == cosine
     )
-    embeddings = np.asarray(embeddings, dtype="float32")
+    embeddings = np.asarray(list(embeddings), dtype="float32")
+    # Unit length -> FAISS inner product == cosine (idempotent if already normalized)
+    embeddings /= np.linalg.norm(embeddings, axis=1, keepdims=True)
 
     dim = embeddings.shape[1]
     index = faiss.IndexFlatIP(dim)
