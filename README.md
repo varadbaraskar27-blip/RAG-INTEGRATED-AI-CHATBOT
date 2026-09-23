@@ -26,7 +26,7 @@ see their previous uploads, and give the bot **custom instructions**
 
         ┌──────────── UPLOAD (POST /api/documents) ─────────────────┐
  file ─>│ ingest.py: extract → 500-word chunks (50 overlap)         │
-        │ → sentence-transformers embeddings (local, free)          │
+        │ → fastembed (ONNX) embeddings, local and free             │
         │ → data/vectors/<doc_id>/index.faiss + chunks.json         │
         │ → documents (Mongo): { email, doc_id, filename,           │
         │        upload_date, chunks, vector_data_reference }       │
@@ -99,7 +99,7 @@ in the sidebar, and chat. The **⚙️ gear** opens custom instructions.
 | **Metadata vs data split** | Mongo stores a pointer (`vector_data_reference`), not the vectors or the PDF: tiny fast queries in Mongo, heavy math in FAISS, big blobs on disk — the right tool for each job. |
 | **Custom instructions in the system prompt** | Same idea as ChatGPT/Claude: user style rules are injected into every LLM call, but worded so they can never override the grounding rule. |
 | **Chunking (500w / 50 overlap)** | LLM context is limited; overlap keeps ideas that straddle chunk boundaries intact. |
-| **all-MiniLM-L6-v2** | Small, fast, CPU-friendly, free — maps text to 384-dim vectors where similar meanings sit close together. |
+| **all-MiniLM-L6-v2 via fastembed** | Same model, but served as an ONNX export and run on ONNX Runtime instead of PyTorch — small, fast, CPU-friendly, free, and light enough (~4x less RAM) for 512MB free-tier hosts like Render. Maps text to 384-dim vectors where similar meanings sit close together. |
 | **FAISS (IndexFlatIP)** | Exact nearest-neighbour search; with normalized vectors inner product = cosine similarity. |
 | **Strict system prompt + NOT_FOUND** | Makes "I don't know" machine-detectable so the backend can branch to general knowledge. |
 | **.env for all secrets** | API key, JWT secret, Mongo URI never touch source code or git history. |
