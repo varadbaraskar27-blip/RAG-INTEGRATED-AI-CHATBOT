@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG Chatbot</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ============================ AUTH VIEW ============================ -->
+  <div id="auth-view" class="auth-view">
+    <div class="bg-blob b1"></div>
+    <div class="bg-blob b2"></div>
+    <div class="bg-blob b3"></div>
+
+    <div class="auth-card">
+      <div class="auth-logo">📚</div>
+      <h1>RAG Chatbot</h1>
+      <p class="auth-sub">Chat with your own documents — grounded answers,
+        and AI guesses clearly flagged.</p>
+
+      <div class="tabs">
+        <button id="tab-login" class="tab active" type="button">Log in</button>
+        <button id="tab-signup" class="tab" type="button">Sign up</button>
+      </div>
+
+      <form id="auth-form" autocomplete="off">
+        <label class="field">Email
+          <input id="auth-email" type="email" placeholder="you@example.com" required />
+        </label>
+        <label class="field">Password
+          <input id="auth-password" type="password" placeholder="••••••••"
+                 minlength="6" required />
+        </label>
+        <div id="auth-error" class="auth-error"></div>
+        <button id="auth-submit" class="btn-primary btn-block" type="submit">Log in</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================ APP VIEW ============================= -->
+  <div id="app-view" class="app-view hidden">
+
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">📚</span>
+        <div>
+          <div class="brand-name">RAG Chatbot</div>
+          <div class="brand-tag">your docs · grounded answers</div>
+        </div>
+      </div>
+
+      <!-- Upload: each file becomes a NEW document (no limits on how many) -->
+      <input type="file" id="file-input" accept=".pdf,.txt,.md" multiple hidden />
+      <button id="upload-btn" class="btn-primary upload-btn" type="button">＋ Upload document</button>
+
+      <div class="doc-section-title">Your documents <span id="doc-count" class="doc-count"></span></div>
+      <div id="doc-list" class="doc-list"></div>
+
+      <div class="sidebar-footer">
+        <button id="settings-btn" class="icon-btn" type="button" title="Custom instructions">⚙️</button>
+        <div class="user-email" id="user-email"></div>
+        <button id="logout-btn" class="icon-btn" type="button" title="Log out">⏻</button>
+      </div>
+    </aside>
+
+    <button id="sidebar-toggle" class="sidebar-toggle" type="button" title="Documents">☰</button>
+
+    <main class="chat-main">
+      <header class="chat-top">
+        <div class="chat-scope" id="chat-scope">No document selected</div>
+      </header>
+
+      <!-- Messages get appended here by script.js -->
+      <div id="chat-window" class="chat-window"></div>
+
+      <form id="chat-form" class="composer" autocomplete="off">
+        <input id="chat-input" type="text" placeholder="Ask about your documents…" />
+        <button id="send-btn" class="btn-primary send-btn" type="submit">Send</button>
+      </form>
+    </main>
+
+    <!-- Settings slide-over (custom instructions) -->
+    <div id="settings-backdrop" class="backdrop hidden"></div>
+    <aside id="settings-panel" class="settings-panel" aria-hidden="true">
+      <div class="settings-head">
+        <h3>⚙️ Custom instructions</h3>
+        <button id="settings-close" class="icon-btn" type="button">✕</button>
+      </div>
+      <p class="settings-hint">Tell the bot how to respond — e.g.
+        <i>"reply in Hinglish"</i>, <i>"I'm preparing for exams, explain
+        thoroughly"</i>, <i>"reply in Hindi"</i>. It applies to every answer.</p>
+      <textarea id="instructions-input" maxlength="2000"
+                placeholder="Type your instructions…"></textarea>
+      <button id="settings-save" class="btn-primary btn-block" type="button">Save instructions</button>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
