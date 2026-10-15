@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>RAG Chatbot</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
@@ -42,6 +42,9 @@
   <!-- ============================ APP VIEW ============================= -->
   <div id="app-view" class="app-view hidden">
 
+    <!-- Drawer overlay (mobile only, shown by CSS breakpoint) -->
+    <div id="sidebar-backdrop" class="backdrop hidden"></div>
+
     <aside id="sidebar" class="sidebar">
       <div class="brand">
         <span class="brand-icon">📚</span>
@@ -49,6 +52,7 @@
           <div class="brand-name">RAG Chatbot</div>
           <div class="brand-tag">your docs · grounded answers</div>
         </div>
+        <button id="sidebar-close" class="icon-btn sidebar-close" type="button" aria-label="Close documents panel">✕</button>
       </div>
 
       <!-- Upload: each file becomes a NEW document (no limits on how many) -->
@@ -65,10 +69,9 @@
       </div>
     </aside>
 
-    <button id="sidebar-toggle" class="sidebar-toggle" type="button" title="Documents">☰</button>
-
     <main class="chat-main">
       <header class="chat-top">
+        <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="Open documents panel" title="Documents">☰</button>
         <div class="chat-scope" id="chat-scope">No document selected</div>
       </header>
 
@@ -83,7 +86,7 @@
 
     <!-- Settings slide-over (custom instructions) -->
     <div id="settings-backdrop" class="backdrop hidden"></div>
-    <aside id="settings-panel" class="settings-panel" aria-hidden="true">
+    <aside id="settings-panel" class="settings-panel closed" aria-hidden="true">
       <div class="settings-head">
         <h3>⚙️ Custom instructions</h3>
         <button id="settings-close" class="icon-btn" type="button">✕</button>

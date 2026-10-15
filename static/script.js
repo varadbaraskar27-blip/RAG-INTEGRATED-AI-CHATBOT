@@ -173,6 +173,9 @@ function renderDocs() {
 function toggleSelect(docId) {
   selectedIds.has(docId) ? selectedIds.delete(docId) : selectedIds.add(docId);
   renderDocs();
+  // On phones the sidebar is a drawer: close it right after a pick so
+  // the user is back on the chat immediately.
+  if (window.innerWidth <= 768) closeSidebar();
 }
 
 async function deleteDoc(doc) {
@@ -223,8 +226,20 @@ $("file-input").addEventListener("change", async () => {
   for (const f of files) await uploadFile(f); // sequential: keeps rows tidy
 });
 
-$("sidebar-toggle").addEventListener("click", () =>
-  $("sidebar").classList.toggle("open"));
+// ---- sidebar drawer (mobile only; >= 768px the CSS shows it inline) ----
+function openSidebar() {
+  $("sidebar").classList.add("open");
+  $("sidebar-backdrop").classList.remove("hidden");
+}
+
+function closeSidebar() {
+  $("sidebar").classList.remove("open");
+  $("sidebar-backdrop").classList.add("hidden");
+}
+
+$("sidebar-toggle").addEventListener("click", openSidebar);
+$("sidebar-close").addEventListener("click", closeSidebar);
+$("sidebar-backdrop").addEventListener("click", closeSidebar);
 
 function addMessage(kind, html) {
   const wrap = document.createElement("div");
