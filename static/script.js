@@ -124,13 +124,14 @@ async function enterApp(email) {
   win.innerHTML = "";
   if (docs.length === 0) {
     addMessage("bot",
-      `Welcome! 👋 Upload a document (PDF, TXT or MD) using the button on the ` +
-      `left — then ask me anything about it.`);
+      `Welcome! 👋 Ask me anything right now — I'll answer from general ` +
+      `knowledge (clearly flagged). Upload a document (PDF, TXT or MD) using ` +
+      `the sidebar button and I'll answer from it instead.`);
   } else {
     addMessage("bot",
       `Welcome back! 👋 You have <b>${docs.length}</b> document` +
       `${docs.length > 1 ? "s" : ""}. Pick one (or several) in the sidebar ` +
-      `and ask away.`);
+      `and ask away — or just ask without picking anything for a general answer.`);
   }
 }
 
@@ -255,7 +256,7 @@ function updateChatScope() {
   const picked = docs.filter((d) => selectedIds.has(d.doc_id));
   el.innerHTML = picked.length
     ? `Chatting against: <b>${picked.map((d) => escapeText(d.filename)).join("</b>, <b>")}</b>`
-    : "No document selected — tick one in the sidebar";
+    : "No documents selected — general answers (pick files in the sidebar to chat against them)";
 }
 
 $("chat-form").addEventListener("submit", async (e) => {
@@ -264,12 +265,8 @@ $("chat-form").addEventListener("submit", async (e) => {
   const question = input.value.trim();
   if (!question) return;
 
-  if (selectedIds.size === 0) {
-    addMessage("bot",
-      `Select at least one document in the sidebar first (tick its checkbox) — ` +
-      `I only answer from <b>your</b> files.`);
-    return;
-  }
+  // Note: no documents selected is fine — server answers from general
+  // knowledge (flagged with the AI disclaimer in the UI).
 
   addMessage("user", escapeText(question));
   input.value = "";

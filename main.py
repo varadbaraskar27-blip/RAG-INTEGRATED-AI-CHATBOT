@@ -308,9 +308,8 @@ def chat(req: ChatRequest, email: str = Depends(get_current_user)):
     question = req.question.strip()
     if not question:
         raise HTTPException(status_code=400, detail="Question must not be empty.")
-    if not req.document_ids:
-        raise HTTPException(status_code=400,
-                            detail="Select at least one document to chat against.")
+    # document_ids is optional now: no docs selected => general-knowledge
+    # answer (still flagged with the AI disclaimer), docs selected => RAG.
 
     from db import get_db
     docs = list(get_db().documents.find({"email": email,
@@ -323,15 +322,27 @@ def chat(req: ChatRequest, email: str = Depends(get_current_user)):
     instructions = (user or {}).get("custom_instructions", "")
 
     hits = retrieve(question, docs)
+    # Empty string context would still trip the strict NOT_FOUND prompt in
+    # ask_groq, so use None when no docs/hits: that selects the relaxed,
+    # general-knowledge system prompt instead.
     context = "\n\n---\n\n".join(
         f"[chunk {i + 1} | {h['filename']} | page {h['page']}]\n{h['text']}"
         for i, h in enumerate(hits)
-    )
+    ) if hits else None
 
     try:
         answer = ask_groq(question, context, instructions)
     except Exception as e:  # network error, bad key, rate limit, ...
         raise HTTPException(status_code=502, detail=f"Groq API error: {e}")
+
+    if not docs:
+        # No documents selected: pure general-knowledge answer, always
+        # flagged with the AI disclaimer in the UI.
+        return ChatResponse(
+            answer=f"{answer}\n\n{DISCLAIMER}",
+            grounded=False,
+            source="general knowledge (no documents selected)",
+        )
 
     if answer == "NOT_FOUND":
         # Documents don't cover the question — retry without context.
